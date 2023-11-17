@@ -9,6 +9,20 @@ export async function createBook(formData) {
   // create book id
   const id = Math.floor(Math.random() * 10000);
 
+  // add book to the sorted set
+  const unique = await client.zAdd(
+    "books",
+    {
+      value: title,
+      score: id,
+    },
+    { NX: true }
+  );
+
+  if (!unique) {
+    return {error: "this book already exist"}
+  }
+
   // save new hash for the book
   await client.hSet(`books:${id}`, { title, rating, author, blurb });
   redirect("/");
